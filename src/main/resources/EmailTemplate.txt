@@ -1,0 +1,7 @@
+Event Name        : {{title}}
+Event Promocodes  : 
+{{promocodes}}
+Event Items       : 
+{{items}}
+Event Registrants : 
+{{registrants}}
