@@ -331,7 +331,7 @@ public class NotifyRSVP {
 		JsonNode node = parseJson(response);
 		if(node != null) {
 			String title = node.get("title").textValue();
-			message = message.replace("{{title}}",title);
+			message = message.replace("{{title}}",title + "\n");
 		}
         return message;
 	}
@@ -377,7 +377,7 @@ public class NotifyRSVP {
 	
 	public String updateMessageWithRegistrants(String eventId, List<String> registrants, String message) {
 		String registrantsMessage = "";
-		registrantsMessage = registrantsMessage + "Total number of completed registrations: " + registrants.size();
+		registrantsMessage = registrantsMessage + "\nTotal number of completed registrations: " + registrants.size();
 		
 		HashMap<String, Integer> items = new HashMap<String, Integer>();
 		
@@ -448,6 +448,9 @@ public class NotifyRSVP {
 		String countryCode = node.get("country_code").textValue();
 		String stateCode = node.get("state_code").textValue();
 		Iterator<JsonNode> it = node.get("organization_addresses").iterator();
+		String footer = "\n\nSource Code location: https://github.com/ravikulkarni/EventNotification\n";
+		
+		message = message + footer;
 		
 		String htmlMessage = message.replaceAll("\\n", "<br>");
 		String textMessage = message.replaceAll("\\n", "\\\\n");
@@ -508,11 +511,13 @@ public class NotifyRSVP {
 		 if(node != null) {
 			 String campaignId = node.get("id").asText();
 			 String scheduleURL = "https://api.constantcontact.com/v2/emailmarketing/campaigns/" + campaignId + "/schedules?api_key=" + KEY;
+			 
 			 response = restPostCall(scheduleURL, "{}");
 			 node = parseJson(response);
 			 if(node != null) {
 				 System.out.println("Campaign Scheduled for " + node.get("scheduled_date").textValue());
 			 }
+			 
 		 }
 		 
 	}
@@ -548,7 +553,7 @@ public class NotifyRSVP {
 				message = updatetMessageWithEventDetails(eventId.getEventId(), message);
 				
 				//Add Info on Promocodes used.
-				message = updateMessageWithPromocodesDetails(eventId.getEventId(), eventId.getPromoCodes(),message);
+				//message = updateMessageWithPromocodesDetails(eventId.getEventId(), eventId.getPromoCodes(),message);
 				
 				//Add Info on Items used
 				//message = updateMessageWithItemssDetails(eventId.getEventId(), eventId.getItems(),message);
