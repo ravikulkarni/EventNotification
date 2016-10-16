@@ -39,8 +39,8 @@ public class NotifyRSVP {
 	private LinkedList<EventIds> queue = new LinkedList<EventIds>();
 	private JsonFactory jsonfactory = new JsonFactory();
 	private ObjectMapper mapper = new ObjectMapper();
-	
-	
+
+
 	public NotifyRSVP(String token, String key) {
 		TOKEN = token;
 		KEY = key;
@@ -48,7 +48,7 @@ public class NotifyRSVP {
 	}
 
 	private String restGetCall(String url) {
-		System.out.print(".");
+		System.out.println("url:" + url);
 		try {
 			Thread.sleep(250);
 			URL obj = new URL(url);
@@ -79,9 +79,9 @@ public class NotifyRSVP {
 			return "";
 		}
 	}
-	
+
 	private String restPostCall(String url, String param ) {
-		String charset = "UTF-8"; 
+		String charset = "UTF-8";
 		URL obj;
 		try {
 			obj = new URL(url);
@@ -96,7 +96,7 @@ public class NotifyRSVP {
 			//}
 			OutputStream output = connection.getOutputStream();
 			output.write(param.getBytes(charset));
-			
+
 			String response = "";
 			int responseCode = connection.getResponseCode();
 			if(responseCode == HttpURLConnection.HTTP_CREATED) {
@@ -118,7 +118,7 @@ public class NotifyRSVP {
 			return "";
 		}
 	}
-	
+
 	private List<String> getListFromJsonArray(String response) {
 		List<String> values = new ArrayList<String>();
 		try {
@@ -132,9 +132,9 @@ public class NotifyRSVP {
 		    }
 		    while (jp.nextToken() != JsonToken.END_ARRAY) {
 		    	JsonNode node = jp.readValueAsTree();
-		    	values.add(node.get("id").textValue());    
+		    	values.add(node.get("id").textValue());
 		    }
-		   
+
 		} catch (JsonParseException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -142,7 +142,7 @@ public class NotifyRSVP {
 		}
 		return values;
 	}
-	
+
 	private List<JsonNode> parseJsonArray(String response) {
 		List<JsonNode> values = new ArrayList<JsonNode>();
 
@@ -159,7 +159,7 @@ public class NotifyRSVP {
 		    	JsonNode node = jp.readValueAsTree();
 		    	values.add(node);
 		    }
-		   
+
 		} catch (JsonParseException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -167,7 +167,7 @@ public class NotifyRSVP {
 		}
 		return values;
 	}
-	
+
 	private JsonNode parseJson(String response) {
 		try {
 			JsonParser jp = jsonfactory.createJsonParser(response);
@@ -181,7 +181,7 @@ public class NotifyRSVP {
 		    while (jp.nextToken() != JsonToken.END_OBJECT) {
 		    	JsonNode node = jp.readValueAsTree();
 		        return node;
-		    }		    
+		    }
 		    return null;
 		} catch (JsonParseException e) {
 			e.printStackTrace();
@@ -191,7 +191,7 @@ public class NotifyRSVP {
 			return null;
 		}
 	}
-	
+
 	public boolean getEvents() {
 		//https://api.constantcontact.com/v2/eventspot/events
 		final String url = "https://api.constantcontact.com/v2/eventspot/events?api_key=" + KEY;
@@ -209,7 +209,7 @@ public class NotifyRSVP {
 		}
 		return true;
 	}
-	
+
 	public boolean getEventFees() {
 		//https://api.constantcontact.com/v2/eventspot/events/{eventId}/fees
 		EventIds eventIds;
@@ -222,7 +222,7 @@ public class NotifyRSVP {
 		}
 		return true;
 	}
-	
+
 	public boolean getPromoCodes() {
 		//https://api.constantcontact.com/v2/eventspot/events/{event_id}/promocodes
 		EventIds eventIds;
@@ -261,7 +261,7 @@ public class NotifyRSVP {
 		}
 		return true;
 	}
-	
+
 	public boolean getEventItems() {
 		//https://api.constantcontact.com/v2/eventspot/events/{eventId}/items
 		EventIds eventIds;
@@ -274,7 +274,7 @@ public class NotifyRSVP {
 		}
 		return true;
 	}
-	
+
 	public boolean getItemAttributes() {
 		//https://api.constantcontact.com/v2/eventspot/events/{eventId}/items/{itemId}/attributes
 		EventIds eventIds;
@@ -292,11 +292,11 @@ public class NotifyRSVP {
 		}
 		return true;
 	}
-	
+
 	public String getEventFee(String eventId, String feeId, String message) {
 		//https://api.constantcontact.com/v2/eventspot/events/{eventId}/fees/{feeId}
 		final String url = "https://api.constantcontact.com/v2/eventspot/events/" + eventId + "/fees/" + feeId + "?api_key=" + KEY;
-		String response = restGetCall(url);	
+		String response = restGetCall(url);
 		JsonNode node = parseJson(response);
 		if(node != null) {
 	        message = message + node.get("label").textValue() + "(" + node.get("fee").textValue()  + ")" ;
@@ -306,7 +306,7 @@ public class NotifyRSVP {
 	public String getPromoCode(String eventId, String promoCodeId, String message) {
 		//https://api.constantcontact.com/v2/eventspot/events/{eventId}/promocodes/{promocodeId}
 		final String url = "https://api.constantcontact.com/v2/eventspot/events/" + eventId + "/promocodes/" + promoCodeId + "?api_key=" + KEY;
-		String response = restGetCall(url);	
+		String response = restGetCall(url);
 		JsonNode node = parseJson(response);
 		if(node != null) {
 	        message = message + node.get("code_name").textValue() + " Used:" + node.get("quantity_used").textValue();
@@ -316,18 +316,18 @@ public class NotifyRSVP {
 	public String getEventItem(String eventId, String itemId, String message) {
 		//https://api.constantcontact.com/v2/eventspot/events/{eventId}/items/{itemId}
 		final String url = "https://api.constantcontact.com/v2/eventspot/events/" + eventId + "/items/" + itemId + "?api_key=" + KEY;
-		String response = restGetCall(url);	
+		String response = restGetCall(url);
 		JsonNode node = parseJson(response);
 		if(node != null) {
 	        message = message + node.get("code_name").textValue() + " Used:" + node.get("quantity_used").textValue();
 		}
 		return message;
 	}
-	
+
 	public String updatetMessageWithEventDetails(String eventId, String message) {
 		//https://api.constantcontact.com/v2/eventspot/events/{event_id}
 		final String url = "https://api.constantcontact.com/v2/eventspot/events/" + eventId +"?api_key=" + KEY;
-		String response = restGetCall(url);	
+		String response = restGetCall(url);
 		JsonNode node = parseJson(response);
 		if(node != null) {
 			String title = node.get("title").textValue();
@@ -335,58 +335,77 @@ public class NotifyRSVP {
 		}
         return message;
 	}
-	
+
 	public String updateMessageWithPromocodesDetails(String eventId, List<String> promoCodes, String message) {
 		String url = "https://api.constantcontact.com/v2/eventspot/events/" + eventId +"/promocodes/";
 		String promocodesDetails = "";
 		for(String promoCode: promoCodes) {
 			url = url + promoCode + "?api_key=" + KEY;
-			String response = restGetCall(url);	
+			String response = restGetCall(url);
 			JsonNode node = parseJson(response);
 			if(node != null) {
 				promocodesDetails = node.get("code_name").textValue() + " Total:" + node.get("quantity_total").textValue();
-				promocodesDetails = " Used: " + node.get("quantity_used").textValue() + " Available:" + node.get("quantity_available").textValue();	
+				promocodesDetails = " Used: " + node.get("quantity_used").textValue() + " Available:" + node.get("quantity_available").textValue();
 				promocodesDetails = "\n";
 			}
 		}
 		message = message.replace("{{promocodes}}",promocodesDetails);
         return message;
 	}
-	
+
 	public String updateMessageWithItemssDetails(String eventId, List<String> items, String message) {
 		String itemsDetails = "";
 		for(String item: items) {
 			String url = "https://api.constantcontact.com/v2/eventspot/events/" + eventId +"/items/";
 			url = url + item + "?api_key=" + KEY;
-			String response = restGetCall(url);	
+			String response = restGetCall(url);
 			JsonNode node = parseJson(response);
 			if(node != null) {
 				itemsDetails = itemsDetails + node.get("name").textValue();
 				Iterator<JsonNode> it = node.get("attributes").iterator();
 				while(it.hasNext()) {
 					JsonNode n = it.next();
-					itemsDetails = itemsDetails + "\n    " + n.get("name").textValue() + " Total:" + n.get("quantity_total").asText() + " Available:" + n.get("quantity_available").asText(); 
-					
+					itemsDetails = itemsDetails + "\n    " + n.get("name").textValue() + " Total:" + n.get("quantity_total").asText() + " Available:" + n.get("quantity_available").asText();
+
 				}
 				itemsDetails = itemsDetails + "\n";
-			} 
+			}
 		}
 		message = message.replace("{{items}}",itemsDetails);
         return message;
 	}
-	
+
 	public String updateMessageWithRegistrants(String eventId, List<String> registrants, String message) {
 		String registrantsMessage = "";
 		registrantsMessage = registrantsMessage + "\nTotal number of completed registrations: " + registrants.size();
-		
+		int numberOfRegistrantsWithNoItems = 0;
+
 		HashMap<String, Integer> items = new HashMap<String, Integer>();
-		
+
 		for(String registrantId : registrants) {
 			String url = "https://api.constantcontact.com/v2/eventspot/events/" + eventId +"/registrants/";
 			url = url + registrantId + "?api_key=" + KEY;
-			String response = restGetCall(url);	
+			String response = restGetCall(url);
 			JsonNode node = parseJson(response);
-			Iterator<JsonNode> it = node.get("payment_summary").get("order").get("items").iterator();
+			JsonNode paymentSummary = node.get("payment_summary");
+			if(paymentSummary == null) {
+				numberOfRegistrantsWithNoItems++;
+				continue;
+			}
+
+			JsonNode order = paymentSummary.get("order");
+			if(order == null) {
+				numberOfRegistrantsWithNoItems++;
+				continue;
+			}
+
+			JsonNode itemsNodes = order.get("items");
+			if(itemsNodes == null) {
+				numberOfRegistrantsWithNoItems++;
+				continue;
+			}
+
+			Iterator<JsonNode> it = itemsNodes.iterator();
 			while(it.hasNext()) {
 				JsonNode n = it.next();
 				String itemName = n.get("name").textValue();
@@ -397,29 +416,30 @@ public class NotifyRSVP {
 				}
 			}
 		}
-		
+
 		Set<String> itemsSet = items.keySet();
 		ArrayList sortedItems = new ArrayList<String>(itemsSet);
 		Collections.sort(sortedItems);
 		Collections.reverse(sortedItems);
 
-		
+
 		Iterator<String> itemsIterator = sortedItems.iterator();
 		while(itemsIterator.hasNext()) {
 			String item = itemsIterator.next();
 			Integer value = items.get(item);
 			registrantsMessage = registrantsMessage + "\n    " + item + ":" + value;
 		}
-		
+
+		registrantsMessage = registrantsMessage + "\nTotal number of registrations with no Attendees : " + numberOfRegistrantsWithNoItems;
 		message = message.replace("{{registrants}}",registrantsMessage);
-		
+
 		return message;
 	}
-	
+
 	public String getCommitteeContactListId() {
 		final String url = "https://api.constantcontact.com/v2/lists?api_key=" + KEY;
 		String listId = "";
-		String response = restGetCall(url);	
+		String response = restGetCall(url);
 		List<JsonNode> nodes = parseJsonArray(response);
 		if(nodes != null) {
 			Iterator<JsonNode> it = nodes.iterator();
@@ -433,7 +453,7 @@ public class NotifyRSVP {
 		}
 		return listId;
 	}
-		
+
 	public void sendEmail(String message) {
 		String listId = getCommitteeContactListId();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/M/dd HH:mm:ss");
@@ -441,7 +461,7 @@ public class NotifyRSVP {
 		String title = "Automated RSVP notification " + date;
 		final String accountInfoURL = "https://api.constantcontact.com/v2/account/info?api_key=" + KEY;
 		final String createCampaignURL = "https://api.constantcontact.com/v2/emailmarketing/campaigns?api_key=" + KEY;
-		String response = restGetCall(accountInfoURL);	
+		String response = restGetCall(accountInfoURL);
 		JsonNode node = parseJson(response);
 		String org_name = node.get("organization_name").textValue();
 		String email = node.get("email").textValue();
@@ -449,15 +469,15 @@ public class NotifyRSVP {
 		String stateCode = node.get("state_code").textValue();
 		Iterator<JsonNode> it = node.get("organization_addresses").iterator();
 		String footer = "\n\nSource Code location: https://github.com/ravikulkarni/EventNotification\n";
-		
+
 		message = message + footer;
-		
+
 		String htmlMessage = message.replaceAll("\\n", "<br>");
 		String textMessage = message.replaceAll("\\n", "\\\\n");
 		String city = "";
 		String line1 = "";
 		String postalCode = "";
-		
+
         while(it.hasNext()) {
         	JsonNode n = it.next();
         	city = n.get("city").textValue();
@@ -500,31 +520,30 @@ public class NotifyRSVP {
 					    "},"+
 					    "\"sent_to_contact_lists\": ["+
 					    "    {"+
-					    "        \"id\": \"" + listId + "\"" + 
+					    "        \"id\": \"" + listId + "\"" +
 					    "    }"+
 					    "]"+
 					    "}";
 
-		
+
 		 response = restPostCall(createCampaignURL, payload);
 		 node = parseJson(response);
 		 if(node != null) {
 			 String campaignId = node.get("id").asText();
 			 String scheduleURL = "https://api.constantcontact.com/v2/emailmarketing/campaigns/" + campaignId + "/schedules?api_key=" + KEY;
-			 
+
 			 response = restPostCall(scheduleURL, "{}");
 			 node = parseJson(response);
 			 if(node != null) {
 				 System.out.println("Campaign Scheduled for " + node.get("scheduled_date").textValue());
 			 }
-			 
 		 }
-		 
+
 	}
 	public void process() {
 		//Clear the queue
 		queue.clear();
-		
+
 		//Get all the ids
 		getEvents();
 		getEventFees();
@@ -532,40 +551,40 @@ public class NotifyRSVP {
 		getRegistrants();
 		getEventItems();
 		//getItemAttributes();
-		
+
 		//Generate message
-		
+
 		String message = "";
 		try {
 			//message = new String(Files.readAllBytes(Paths.get(getClass().getResource("EmailTemplate.txt").toURI())));
-			InputStream in = getClass().getResourceAsStream("/EmailTemplate.txt"); 
+			InputStream in = getClass().getResourceAsStream("/EmailTemplate.txt");
 			BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 			String line = "";
 			while((line = reader.readLine()) != null) {
 				message = message + line;
 			}
-			
+
 			EventIds eventIds;
 			Iterator<EventIds> it = queue.iterator();
 			while(it.hasNext()) {
 				EventIds eventId = it.next();
 				//Add Event information
 				message = updatetMessageWithEventDetails(eventId.getEventId(), message);
-				
+
 				//Add Info on Promocodes used.
 				//message = updateMessageWithPromocodesDetails(eventId.getEventId(), eventId.getPromoCodes(),message);
-				
+
 				//Add Info on Items used
 				//message = updateMessageWithItemssDetails(eventId.getEventId(), eventId.getItems(),message);
-				
-				//Add Info on Registrants 
-				message = updateMessageWithRegistrants(eventId.getEventId(), eventId.getRegistrants(), message);		
+
+				//Add Info on Registrants
+				message = updateMessageWithRegistrants(eventId.getEventId(), eventId.getRegistrants(), message);
 			}
-			
+
 			String listId = getCommitteeContactListId();
-			
+
 			System.out.println("\nSending Message to List Id:" + listId + "\n" + message);
-			
+
 			sendEmail(message);
 
 		} catch (IOException e) {
@@ -575,7 +594,7 @@ public class NotifyRSVP {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}*/
-				
+
 	}
 	public static void main(String args[]) {
 		NotifyRSVP notifyRsvp = new NotifyRSVP(args[0], args[1]);
@@ -584,4 +603,3 @@ public class NotifyRSVP {
 
 
 }
-
