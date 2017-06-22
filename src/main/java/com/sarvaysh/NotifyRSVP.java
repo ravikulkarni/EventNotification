@@ -207,7 +207,7 @@ public class NotifyRSVP {
 	            queue.add(new EventIds(n.get("id").textValue(), null, null, null, null, null));
 	        }
 		}
-		return true;
+		return (queue.size() > 0);
 	}
 
 	public boolean getEventFees() {
@@ -355,6 +355,7 @@ public class NotifyRSVP {
 
 	public String updateMessageWithItemssDetails(String eventId, List<String> items, String message) {
 		String itemsDetails = "";
+		boolean itemsPresent = false;
 		for(String item: items) {
 			String url = "https://api.constantcontact.com/v2/eventspot/events/" + eventId +"/items/";
 			url = url + item + "?api_key=" + KEY;
@@ -366,20 +367,25 @@ public class NotifyRSVP {
 				while(it.hasNext()) {
 					JsonNode n = it.next();
 					itemsDetails = itemsDetails + "\n    " + n.get("name").textValue() + " Total:" + n.get("quantity_total").asText() + " Available:" + n.get("quantity_available").asText();
-
+					itemsPresent = true;
 				}
 				itemsDetails = itemsDetails + "\n";
 			}
 		}
-		message = message.replace("{{items}}",itemsDetails);
+		if(itemsPresent) {
+			message = message.replace("{{items}}",itemsDetails);
+		}else {
+			message = message.replace("{{items}}","");
+		}
         return message;
 	}
 
 	public String updateMessageWithRegistrants(String eventId, List<String> registrants, String message) {
 		String registrantsMessage = "";
-		registrantsMessage = registrantsMessage + "\nTotal number of completed registrations: " + registrants.size();
+		registrantsMessage = registrantsMessage + "\nTotal number of registrants: " + registrants.size();
 		int numberOfRegistrantsWithNoItems = 0;
-
+		int guestCount = 0;
+		
 		HashMap<String, Integer> items = new HashMap<String, Integer>();
 
 		for(String registrantId : registrants) {
@@ -387,6 +393,13 @@ public class NotifyRSVP {
 			url = url + registrantId + "?api_key=" + KEY;
 			String response = restGetCall(url);
 			JsonNode node = parseJson(response);
+			
+			//Calculate Guest Count
+			JsonNode guests = node.get("guests");
+			if(guests != null) {
+				guestCount = guestCount + guests.get("guest_count").asInt();
+			}
+			
 			JsonNode paymentSummary = node.get("payment_summary");
 			if(paymentSummary == null) {
 				numberOfRegistrantsWithNoItems++;
@@ -427,10 +440,12 @@ public class NotifyRSVP {
 		while(itemsIterator.hasNext()) {
 			String item = itemsIterator.next();
 			Integer value = items.get(item);
-			registrantsMessage = registrantsMessage + "\n    " + item + ":" + value;
+			//registrantsMessage = registrantsMessage + "\n    " + item + ":" + value;
+			registrantsMessage = registrantsMessage + "\n    "+ String.format("%04d - %s", value, item) ;
 		}
-
-		registrantsMessage = registrantsMessage + "\nTotal number of registrations with no Attendees : " + numberOfRegistrantsWithNoItems;
+		
+		registrantsMessage = registrantsMessage + "\nTotal number of guests : " + guestCount;
+		//registrantsMessage = registrantsMessage + "\nTotal number of registrations with no Attendees : " + numberOfRegistrantsWithNoItems;
 		message = message.replace("{{registrants}}",registrantsMessage);
 
 		return message;
@@ -468,8 +483,8 @@ public class NotifyRSVP {
 		String countryCode = node.get("country_code").textValue();
 		String stateCode = node.get("state_code").textValue();
 		Iterator<JsonNode> it = node.get("organization_addresses").iterator();
-		String footer = "\n\nSource Code location: https://github.com/ravikulkarni/EventNotification\n";
-
+		//String footer = "\n\nSource Code location: https://github.com/ravikulkarni/EventNotification\n";
+		String footer = "\n";
 		message = message + footer;
 
 		String htmlMessage = message.replaceAll("\\n", "<br>");
@@ -545,7 +560,10 @@ public class NotifyRSVP {
 		queue.clear();
 
 		//Get all the ids
-		getEvents();
+		boolean activeEventsExist = getEvents();
+		if(!activeEventsExist) {
+			return;
+		}
 		getEventFees();
 		getPromoCodes();
 		getRegistrants();
@@ -555,19 +573,22 @@ public class NotifyRSVP {
 		//Generate message
 
 		String message = "";
+		String eventTemplateString = "";
+
 		try {
 			//message = new String(Files.readAllBytes(Paths.get(getClass().getResource("EmailTemplate.txt").toURI())));
 			InputStream in = getClass().getResourceAsStream("/EmailTemplate.txt");
 			BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 			String line = "";
 			while((line = reader.readLine()) != null) {
-				message = message + line;
+				eventTemplateString = eventTemplateString + line + "\n";
 			}
-
+			
 			EventIds eventIds;
 			Iterator<EventIds> it = queue.iterator();
 			while(it.hasNext()) {
 				EventIds eventId = it.next();
+				message = message + "\n" + eventTemplateString;
 				//Add Event information
 				message = updatetMessageWithEventDetails(eventId.getEventId(), message);
 
@@ -575,7 +596,7 @@ public class NotifyRSVP {
 				//message = updateMessageWithPromocodesDetails(eventId.getEventId(), eventId.getPromoCodes(),message);
 
 				//Add Info on Items used
-				//message = updateMessageWithItemssDetails(eventId.getEventId(), eventId.getItems(),message);
+				message = updateMessageWithItemssDetails(eventId.getEventId(), eventId.getItems(),message);
 
 				//Add Info on Registrants
 				message = updateMessageWithRegistrants(eventId.getEventId(), eventId.getRegistrants(), message);
